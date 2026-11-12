@@ -22,14 +22,14 @@ order ID with validate_order_id, then call log_complaint only for a valid order.
 Never invent facts. Ask for missing details.
 """
 
-def create_chat_model(llm="grok"):
+def create_chat_model(llm="groq"):
     return ChatOpenAI(**LLMS[llm], temperature=0)
 
 def assistant(state: MessagesState, model_with_tools):
     reply = model_with_tools.invoke([SystemMessage(content=SYSTEM_PROMPT), *state["messages"]])
     return {"messages": [reply]}
 
-def build_graph():
+def build_graph(llm="groq",model = None, tools=None):
     tools = TOOLS if tools is None else tools
     model = create_chat_model()
 
@@ -52,7 +52,13 @@ def build_graph():
     builder.add_edge("tools", "assistant")
 
     return builder.compile
-    
+
+if __name__ == "__main__":
+    import sys
+    graph = build_graph(sys.argv[1] if len(sys.argv) > 1 else "ollama")
+    out = graph.invoke({"messages": [("user", "What is on the menu?")]})
+    print(out["messages"][-1].content)
+  
 
 # Step 1: LLM settings (ollama and grok)
 # Step 2: create_chat_model(llm)
